@@ -1,14 +1,7 @@
-async function run() {
-    let json = await browser.runtime.sendMessage({msg: "revision.search"});
-
-    if (json.error_info) {
-        alert("Phabricator in Bugzilla: " + json.error_info);
-        return;
-    }
-
+function format(title, data) {
     var div = document.createElement("div");
     var h3 = document.createElement("h3");
-    h3.textContent = "Phabricator";
+    h3.textContent = title;
     div.append(h3);
 
     var content = document.createElement("div");
@@ -50,8 +43,6 @@ async function run() {
     tbody.classList.add("yui3-datatable-data");
     table.append(tbody);
 
-    let data = json.result.data;
-
     data.sort((a, b) => {
         return a.fields.status.name.localeCompare(b.fields.status.name);
     })
@@ -88,5 +79,32 @@ async function run() {
     }
 
    document.querySelector("#right").append(div);
+}
+
+async function run() {
+    let assigned = await browser.runtime.sendMessage({
+        msg: "revision.search",
+        constraints: "constraints[authorPHIDs][0]",
+    });
+
+    if (assigned.error_info) {
+        alert("Phabricator in Bugzilla: " + assigned.error_info);
+        return;
+    }
+
+    format("Phabricator: Your revisions", assigned.result.data);
+
+
+    let reviewing = await browser.runtime.sendMessage({
+        msg: "revision.search",
+        constraints: "constraints[reviewerPHIDs][0]",
+    });
+
+    if (reviewing.error_info) {
+        alert("Phabricator in Bugzilla: " + reviewing.error_info);
+        return;
+    }
+
+    format("Phabricator: Review Requests", reviewing.result.data);
 }
 run();

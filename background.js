@@ -12,7 +12,7 @@ async function request(endpoint, apiKey, params) {
     return await res.json();
 }
 
-async function revisionSearch() {
+async function revisionSearch(constraints) {
     let {apiKey} = await browser.storage.local.get("apiKey");
 
     if (!apiKey) {
@@ -27,14 +27,15 @@ async function revisionSearch() {
     const phid = whoami.result.phid;
 
     return await request("differential.revision.search", apiKey, [
-        ["constraints[authorPHIDs][0]", phid]
+        [constraints, phid],
+        ["queryKey", "active"]
     ]);
 }
 
 async function init() {
     browser.runtime.onMessage.addListener((data, sender) => {
         if (data.msg == 'revision.search') {
-            return revisionSearch();
+            return revisionSearch(data.constraints);
         }
     })
 }
