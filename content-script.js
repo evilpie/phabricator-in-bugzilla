@@ -48,10 +48,6 @@ function format(title, data) {
     })
 
     for (let rev of data) {
-        if (rev.fields.status.closed) {
-            continue;
-        }
-
         var tr = document.createElement("tr");
         tr.classList.add("yui3-datatable-even");
 
