@@ -1,0 +1,30 @@
+{
+
+  "background": {
+    "scripts": ["background.js"]
+
+  },
+
+
+  "description": "Show phabricator requests in your bugzilla dashboard.",
+
+  "manifest_version": 2,
+
+  "name": "Phabricator in Bugzilla",
+
+  "permissions": ["storage", "https://phabricator.services.mozilla.com/*"],
+
+  "version": "0.1",
+
+  "content_scripts": [
+  {
+    "matches": ["https://bugzilla.mozilla.org/page.cgi?id=mydashboard.html"],
+    "js": ["content-script.js"],
+    "run_at": "document_idle"
+  }
+ ],
+
+  "options_ui": {
+    "page": "options.html"
+  }
+}
