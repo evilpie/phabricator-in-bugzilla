@@ -14,7 +14,7 @@
 
   "permissions": ["storage", "https://phabricator.services.mozilla.com/*"],
 
-  "version": "0.2",
+  "version": "0.3",
 
   "content_scripts": [
   {
