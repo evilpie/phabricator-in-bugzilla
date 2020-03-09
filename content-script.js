@@ -1,6 +1,43 @@
+// Copied from:
+// https://stackoverflow.com/questions/6108819/javascript-timestamp-to-relative-time-eg-2-seconds-ago-one-week-ago-etc-best
+function timeDifference(current, previous) {
+
+    var msPerMinute = 60 * 1000;
+    var msPerHour = msPerMinute * 60;
+    var msPerDay = msPerHour * 24;
+    var msPerMonth = msPerDay * 30;
+    var msPerYear = msPerDay * 365;
+
+    var elapsed = current - previous;
+
+    if (elapsed < msPerMinute) {
+         return Math.round(elapsed/1000) + ' seconds ago';
+    }
+
+    else if (elapsed < msPerHour) {
+         return Math.round(elapsed/msPerMinute) + ' minutes ago';
+    }
+
+    else if (elapsed < msPerDay ) {
+         return Math.round(elapsed/msPerHour ) + ' hours ago';
+    }
+
+    else if (elapsed < msPerMonth) {
+        return Math.round(elapsed/msPerDay) + ' days ago';
+    }
+
+    else if (elapsed < msPerYear) {
+        return Math.round(elapsed/msPerMonth) + ' months ago';
+    }
+
+    else {
+        return Math.round(elapsed/msPerYear ) + ' years ago';
+    }
+}
+
 function format(title, data) {
     var div = document.createElement("div");
-    var h3 = document.createElement("h3");
+    var h3 = document.createElement("h2");
     h3.textContent = title;
     div.append(h3);
 
@@ -22,6 +59,10 @@ function format(title, data) {
         revision.classList.add("yui3-datatable-header");
         revision.textContent = "Revision";
 
+        var updated = document.createElement("td");
+        updated.classList.add("yui3-datatable-header");
+        updated.textContent = "Updated";
+
         var status = document.createElement("td");
         status.classList.add("yui3-datatable-header");
         status.textContent = "Status";
@@ -31,6 +72,7 @@ function format(title, data) {
         title.textContent = "Title";
 
         tr.append(revision);
+        tr.append(updated);
         tr.append(status);
         tr.append(title);
 
@@ -44,10 +86,12 @@ function format(title, data) {
     table.append(tbody);
 
     data.sort((a, b) => {
-        return a.fields.status.name.localeCompare(b.fields.status.name);
+        return b.fields.dateModified - a.fields.dateModified;
     })
 
     for (let rev of data) {
+        console.log(rev);
+
         var tr = document.createElement("tr");
         tr.classList.add("yui3-datatable-even");
 
@@ -60,6 +104,11 @@ function format(title, data) {
         a.target = "_blank";
         revision.append(a);
 
+        var updated = document.createElement("td");
+        updated.classList.add("yui3-datatable-cell");
+        updated.textContent = timeDifference(Date.now(), rev.fields.dateModified * 1000);
+        updated.title = new Date(rev.fields.dateModified * 1000);
+
         var status = document.createElement("td");
         status.classList.add("yui3-datatable-cell");
         status.textContent = rev.fields.status.name;
@@ -69,12 +118,13 @@ function format(title, data) {
         title.textContent = rev.fields.title;
 
         tr.append(revision);
+        tr.append(updated);
         tr.append(status);
         tr.append(title);
         tbody.append(tr);
     }
 
-   document.querySelector("#right").append(div);
+   document.querySelector("#left").append(div);
 }
 
 async function run() {

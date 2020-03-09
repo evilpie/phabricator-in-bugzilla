@@ -16,7 +16,7 @@ async function revisionSearch(constraints) {
     let {apiToken} = await browser.storage.local.get("apiToken");
 
     if (!apiToken) {
-        return {error_info: "Missing API key go to add-on options."};
+        return {error_info: "Missing API Token go to add-on options."};
     }
 
     const whoami = await request("user.whoami", apiToken, []);
