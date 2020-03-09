@@ -28,7 +28,11 @@ async function revisionSearch(constraints) {
 
     return await request("differential.revision.search", apiToken, [
         [constraints, phid],
-        ["queryKey", "active"]
+        ["constraints[statuses][0]", "accepted"],
+        ["constraints[statuses][1]", "needs-review"],
+        ["constraints[statuses][2]", "changes-planned"],
+        ["constraints[statuses][3]", "needs-revision"],
+        ["constraints[statuses][4]", "draft"],
     ]);
 }
 
