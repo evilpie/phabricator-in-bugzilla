@@ -115,7 +115,23 @@ function format(title, data) {
 
         var title = document.createElement("td");
         title.classList.add("yui3-datatable-cell");
-        title.textContent = rev.fields.title;
+
+        // Linkify "Bug XXX - "
+        var match = /^[Bb]ug (\d+) (.*)/.exec(rev.fields.title)
+        if (match) {
+            var bug = document.createElement("a");
+            bug.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + match[1];
+            bug.textContent = "Bug " + match[1];
+            bug.target = "_blank";
+
+            var desc = document.createElement("span");
+            desc.textContent = " " + match[2];
+
+            title.append(bug);
+            title.append(desc);
+        } else {
+            title.textContent = rev.fields.title;
+        }
 
         tr.append(revision);
         tr.append(updated);
