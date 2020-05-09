@@ -90,8 +90,6 @@ function format(title, data) {
     })
 
     for (let rev of data) {
-        console.log(rev);
-
         var tr = document.createElement("tr");
         tr.classList.add("yui3-datatable-even");
 
