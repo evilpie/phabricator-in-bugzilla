@@ -115,18 +115,21 @@ function format(title, data) {
         title.classList.add("yui3-datatable-cell");
 
         // Linkify "Bug XXX - "
-        var match = /^[Bb]ug (\d+) (.*)/.exec(rev.fields.title)
+        var match = /^(?<before>.*)?(?<title>[Bb]ug (?<id>\d+))(?<after>.*)?/.exec(rev.fields.title)
         if (match) {
+            if (match.groups.before) {
+                title.append(match.groups.before);
+            }
+
             var bug = document.createElement("a");
-            bug.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + match[1];
-            bug.textContent = "Bug " + match[1];
+            bug.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + match.groups.id;
+            bug.textContent = match.groups.title;
             bug.target = "_blank";
-
-            var desc = document.createElement("span");
-            desc.textContent = " " + match[2];
-
             title.append(bug);
-            title.append(desc);
+
+            if (match.groups.after) {
+                title.append(match.groups.after);
+            }
         } else {
             title.textContent = rev.fields.title;
         }
