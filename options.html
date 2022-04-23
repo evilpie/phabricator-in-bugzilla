@@ -1,14 +1,24 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="utf-8"/>
+    <title></title>
+    <link rel="stylesheet" href="options.css">
   </head>
 
   <body>
     <form>
-      <label>API Token:</label>
+      <label for="apiToken">API Token:</label>
       <input type="text" id="apiToken" size="32" minlength="32" maxlength="32">
       <button type="submit">Save</button>
     </form>
+    <div>
+      To generate a Phabricator API token, go to Settings ->
+      Conduit API Tokens -> Generate Token. Keep this token secret and use
+      it only for Phabricartor-in-Bugzilla. You cannot reuse a “cli-” token;
+      please generate a new API token (these start with “api-“).
+    </div>
+    <img src="assets/phabricator-api-token-setup.png" alt="Howto Image">
     <script src="options.js"></script>
   </body>
 </html>
