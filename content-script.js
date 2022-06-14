@@ -144,14 +144,27 @@ function format(title, data) {
    document.querySelector("#left").append(div);
 }
 
+function error(msg) {
+    alert(`Phabricator in Bugzilla: ${msg}`)
+}
+
 async function run() {
+    let profile = document.querySelector("#header-account a[href^='/user_profile?user_id=']");
+    if (!profile) {
+        error(`Could not find "My Profile" link on page`)
+        return;
+    }
+
+    let user_id = new URL(profile.href).searchParams.get("user_id");
+
     let assigned = await browser.runtime.sendMessage({
         msg: "revision.search",
+        user_id,
         constraints: "constraints[authorPHIDs][0]",
     });
 
     if (assigned.error_info) {
-        alert("Phabricator in Bugzilla: " + assigned.error_info);
+        error(assigned.error_info);
         return;
     }
 
@@ -160,6 +173,7 @@ async function run() {
 
     let reviewing = await browser.runtime.sendMessage({
         msg: "revision.search",
+        user_id,
         constraints: "constraints[reviewerPHIDs][0]",
     });
 
