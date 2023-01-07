@@ -8,7 +8,7 @@ async function request(endpoint, apiToken, params) {
         body.append(name, value);
     }
 
-    var res = await fetch(API + endpoint, {method: "POST", body, credentials: "omit"})
+    var res = await fetch(API + endpoint, {method: "POST", body, credentials: "omit"});
     return await res.json();
 }
 
@@ -20,7 +20,7 @@ async function revisionSearch(user_id, constraints) {
     }
 
     const account = await request("bmoexternalaccount.search", apiToken, [
-        ["accountids[0]", user_id]
+        ["accountids[0]", user_id],
     ]);
     if (account.error_info) {
         return account;
@@ -43,10 +43,10 @@ async function revisionSearch(user_id, constraints) {
 
 async function init() {
     browser.runtime.onMessage.addListener((data, sender) => {
-        if (data.msg == 'revision.search') {
+        if (data.msg === "revision.search") {
             return revisionSearch(data.user_id, data.constraints);
         }
-    })
+    });
 }
 
 init();

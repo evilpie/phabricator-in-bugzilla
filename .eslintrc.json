@@ -1,0 +1,19 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "webextensions": true
+    },
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": 12
+    },
+    "root": true,
+    "extends": ["plugin:prettier/recommended"],
+    "plugins": ["html", "no-unsanitized", "prettier"],
+    "rules": {
+        "prettier/prettier": "error",
+        "no-eval": "error",
+        "no-unused-vars": ["error", { "args": "none", "vars": "local" }]
+    }
+}
