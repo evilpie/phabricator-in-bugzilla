@@ -161,6 +161,11 @@ async function run() {
         return;
     }
 
+    let remove_heading = document.querySelector("#right > h2.query_heading.requests");
+    if (remove_heading) {
+        remove_heading.remove();
+    }
+
     const user_id = new URL(profile.href).searchParams.get("user_id");
 
     const assigned = await browser.runtime.sendMessage({
