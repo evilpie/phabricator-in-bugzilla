@@ -8,7 +8,7 @@ async function request(endpoint, apiToken, params) {
         body.append(name, value);
     }
 
-    var res = await fetch(API + endpoint, {method: "POST", body, credentials: "omit"});
+    const res = await fetch(API + endpoint, {method: "POST", body, credentials: "omit"});
     return await res.json();
 }
 

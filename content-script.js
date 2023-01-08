@@ -37,38 +37,38 @@ function timeDifference(current, previous) {
 }
 
 function format(table_title, data) {
-    var div = document.createElement("div");
-    var h3 = document.createElement("h2");
+    const div = document.createElement("div");
+    const h3 = document.createElement("h2");
     h3.textContent = table_title;
     div.append(h3);
 
-    var content = document.createElement("div");
+    const content = document.createElement("div");
     content.classList.add("yui3-datatable-content");
     div.append(content);
 
-    var table = document.createElement("table");
+    const table = document.createElement("table");
     table.classList.add("yui3-datatable-table");
     content.append(table);
 
-    var thead = document.createElement("thead");
+    const thead = document.createElement("thead");
     thead.classList.add("yui3-datatable-columns");
 
     {
-        var tr = document.createElement("tr");
+        const tr = document.createElement("tr");
 
-        var revision = document.createElement("td");
+        const revision = document.createElement("td");
         revision.classList.add("yui3-datatable-header");
         revision.textContent = "Revision";
 
-        var updated = document.createElement("td");
+        const updated = document.createElement("td");
         updated.classList.add("yui3-datatable-header");
         updated.textContent = "Updated";
 
-        var status = document.createElement("td");
+        const status = document.createElement("td");
         status.classList.add("yui3-datatable-header");
         status.textContent = "Status";
 
-        var title = document.createElement("td");
+        const title = document.createElement("td");
         title.classList.add("yui3-datatable-header");
         title.textContent = "Title";
 
@@ -82,7 +82,7 @@ function format(table_title, data) {
 
     table.append(thead);
 
-    var tbody = document.createElement("tbody");
+    const tbody = document.createElement("tbody");
     tbody.classList.add("yui3-datatable-data");
     table.append(tbody);
 
@@ -91,38 +91,38 @@ function format(table_title, data) {
     })
 
     for (let rev of data) {
-        var tr = document.createElement("tr");
+        const tr = document.createElement("tr");
         tr.classList.add("yui3-datatable-even");
 
-        var revision = document.createElement("td");
+        const revision = document.createElement("td");
         revision.classList.add("yui3-datatable-cell");
 
-        var a = document.createElement("a");
+        const a = document.createElement("a");
         a.href = `https://phabricator.services.mozilla.com/D${rev.id}`;
         a.textContent = `D${rev.id}`;
         a.target = "_blank";
         revision.append(a);
 
-        var updated = document.createElement("td");
+        const updated = document.createElement("td");
         updated.classList.add("yui3-datatable-cell");
         updated.textContent = timeDifference(Date.now(), rev.fields.dateModified * 1000);
         updated.title = new Date(rev.fields.dateModified * 1000).toString();
 
-        var status = document.createElement("td");
+        const status = document.createElement("td");
         status.classList.add("yui3-datatable-cell");
         status.textContent = rev.fields.status.name;
 
-        var title = document.createElement("td");
+        const title = document.createElement("td");
         title.classList.add("yui3-datatable-cell");
 
         // Linkify "Bug XXX - "
-        var match = /^(?<before>.*)?(?<title>[Bb]ug (?<id>\d+))(?<after>.*)?/.exec(rev.fields.title)
+        const match = /^(?<before>.*)?(?<title>[Bb]ug (?<id>\d+))(?<after>.*)?/.exec(rev.fields.title)
         if (match) {
             if (match.groups.before) {
                 title.append(match.groups.before);
             }
 
-            var bug = document.createElement("a");
+            const bug = document.createElement("a");
             bug.href = `https://bugzilla.mozilla.org/show_bug.cgi?id=${match.groups.id}`;
             bug.textContent = match.groups.title;
             bug.target = "_blank";
@@ -150,15 +150,15 @@ function error(msg) {
 }
 
 async function run() {
-    let profile = document.querySelector("#header-account a[href^='/user_profile?user_id=']");
+    const profile = document.querySelector("#header-account a[href^='/user_profile?user_id=']");
     if (!profile) {
         error(`Could not find "My Profile" link on page`)
         return;
     }
 
-    let user_id = new URL(profile.href).searchParams.get("user_id");
+    const user_id = new URL(profile.href).searchParams.get("user_id");
 
-    let assigned = await browser.runtime.sendMessage({
+    const assigned = await browser.runtime.sendMessage({
         msg: "revision.search",
         user_id: user_id,
         constraints: "constraints[authorPHIDs][0]",
@@ -172,7 +172,7 @@ async function run() {
     format("Phabricator: Your revisions", assigned.result.data);
 
 
-    let reviewing = await browser.runtime.sendMessage({
+    const reviewing = await browser.runtime.sendMessage({
         msg: "revision.search",
         user_id: user_id,
         constraints: "constraints[reviewerPHIDs][0]",
