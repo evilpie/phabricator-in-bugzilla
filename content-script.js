@@ -36,11 +36,12 @@ function timeDifference(current, previous) {
     }
 }
 
-function format(table_title, data) {
+function mk_table(table_title) {
     const div = document.createElement("div");
-    const h3 = document.createElement("h2");
-    h3.textContent = table_title;
-    div.append(h3);
+    const h2 = document.createElement("h2");
+    h2.classList.add("query_heading")
+    h2.textContent = table_title;
+    div.append(h2);
 
     const content = document.createElement("div");
     content.classList.add("yui3-datatable-content");
@@ -85,6 +86,12 @@ function format(table_title, data) {
     const tbody = document.createElement("tbody");
     tbody.classList.add("yui3-datatable-data");
     table.append(tbody);
+
+    return div;
+}
+
+function fill_data(div, data) {
+    const tbody = div.querySelector("tbody");
 
     data.sort((a, b) => {
         return b.fields.dateModified - a.fields.dateModified;
@@ -141,8 +148,6 @@ function format(table_title, data) {
         tr.append(title);
         tbody.append(tr);
     }
-
-   document.querySelector("#left").append(div);
 }
 
 function error(msg) {
@@ -169,8 +174,9 @@ async function run() {
         return;
     }
 
-    format("Phabricator: Your revisions", assigned.result.data);
-
+    const assigned_div = mk_table("Phabricator: Your revisions");
+    fill_data(assigned_div, assigned.result.data);
+    document.querySelector("#left").append(assigned_div);
 
     const reviewing = await browser.runtime.sendMessage({
         msg: "revision.search",
@@ -183,6 +189,8 @@ async function run() {
         return;
     }
 
-    format("Phabricator: Review Requests", reviewing.result.data);
+    const reviewing_div = mk_table("Phabricator: Review Requests");
+    fill_data(reviewing_div, reviewing.result.data);
+    document.querySelector("#right").append(reviewing_div);
 }
 run();
