@@ -12,13 +12,13 @@ async function request(endpoint, apiToken, params) {
     return await res.json();
 }
 
-async function revisionSearch(user_id, constraints) {
-    let {apiToken} = await browser.storage.local.get("apiToken");
-
-    if (!apiToken) {
-        return {error_info: "Missing API Token go to add-on options."};
-    }
-
+/**
+ * Retrieve phid for a bmo user_id from Conduit API and save to local storage
+ * @param user_id
+ * @param apiToken
+ * @returns {Promise<String|Object>}
+ */
+async function getPhid(user_id, apiToken) {
     const account = await request("bmoexternalaccount.search", apiToken, [
         ["accountids[0]", user_id],
     ]);
@@ -31,6 +31,22 @@ async function revisionSearch(user_id, constraints) {
         return {error_info: `Could not find phabricator account for BMO user ${user_id}`};
     }
 
+    await browser.storage.local.set({[`bmo.${user_id}`]: phid})
+    return phid;
+}
+
+async function revisionSearch(user_id, constraints) {
+    const bmo_key = `bmo.${user_id}`;
+    let {apiToken, [bmo_key]: phid} = await browser.storage.local.get(["apiToken", bmo_key]);
+
+    if (!apiToken) {
+        return {error_info: "Missing API Token go to add-on options."};
+    }
+
+    if (!phid) {
+        phid = await getPhid(user_id, apiToken);
+    }
+
     return await request("differential.revision.search", apiToken, [
         [constraints, phid],
         ["constraints[statuses][0]", "accepted"],
@@ -41,10 +57,10 @@ async function revisionSearch(user_id, constraints) {
     ]);
 }
 
-async function init() {
-    browser.runtime.onMessage.addListener((data, sender) => {
+function init() {
+    browser.runtime.onMessage.addListener(async (data, sender) => {
         if (data.msg === "revision.search") {
-            return revisionSearch(data.user_id, data.constraints);
+            return await revisionSearch(data.user_id, data.constraints);
         }
     });
 }
