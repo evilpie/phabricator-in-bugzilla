@@ -36,10 +36,10 @@ function timeDifference(current, previous) {
     }
 }
 
-function format(title, data) {
+function format(table_title, data) {
     var div = document.createElement("div");
     var h3 = document.createElement("h2");
-    h3.textContent = title;
+    h3.textContent = table_title;
     div.append(h3);
 
     var content = document.createElement("div");
@@ -98,7 +98,7 @@ function format(title, data) {
         revision.classList.add("yui3-datatable-cell");
 
         var a = document.createElement("a");
-        a.href = "https://phabricator.services.mozilla.com/D" + rev.id;
+        a.href = `https://phabricator.services.mozilla.com/D${rev.id}`;
         a.textContent = `D${rev.id}`;
         a.target = "_blank";
         revision.append(a);
@@ -106,7 +106,7 @@ function format(title, data) {
         var updated = document.createElement("td");
         updated.classList.add("yui3-datatable-cell");
         updated.textContent = timeDifference(Date.now(), rev.fields.dateModified * 1000);
-        updated.title = new Date(rev.fields.dateModified * 1000);
+        updated.title = new Date(rev.fields.dateModified * 1000).toString();
 
         var status = document.createElement("td");
         status.classList.add("yui3-datatable-cell");
@@ -123,7 +123,7 @@ function format(title, data) {
             }
 
             var bug = document.createElement("a");
-            bug.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + match.groups.id;
+            bug.href = `https://bugzilla.mozilla.org/show_bug.cgi?id=${match.groups.id}`;
             bug.textContent = match.groups.title;
             bug.target = "_blank";
             title.append(bug);
@@ -160,7 +160,7 @@ async function run() {
 
     let assigned = await browser.runtime.sendMessage({
         msg: "revision.search",
-        user_id,
+        user_id: user_id,
         constraints: "constraints[authorPHIDs][0]",
     });
 
@@ -174,7 +174,7 @@ async function run() {
 
     let reviewing = await browser.runtime.sendMessage({
         msg: "revision.search",
-        user_id,
+        user_id: user_id,
         constraints: "constraints[reviewerPHIDs][0]",
     });
 
