@@ -59,7 +59,7 @@ function createElement(tag, props={}, text="") {
     return el;
 }
 
-function mk_table(table_title) {
+function mk_table(table_title, data_func) {
     const div = createElement("div", {"class": "requests"});
     const h2 = createElement("h2", {"class": "query_heading"}, table_title);
     div.append(h2);
@@ -93,6 +93,12 @@ function mk_table(table_title) {
     const tbody = createElement("tbody", {"class": "yui3-datatable-data"});
     table.append(tbody);
 
+    div.addEventListener("data_load", function(e) {
+        data_func()
+            .then((data) => {
+                fill_data(e.target, data);
+            })
+    })
     return div;
 }
 
@@ -103,6 +109,7 @@ function fill_data(div, data) {
         return b.fields.dateModified - a.fields.dateModified;
     })
 
+    let table_rows = [];
     for (let rev of data) {
         const tr = createElement("tr", {"class": "yui3-datatable-data"});
 
@@ -150,12 +157,30 @@ function fill_data(div, data) {
         tr.append(updated);
         tr.append(status);
         tr.append(title);
-        tbody.append(tr);
+
+        table_rows.push(tr);
     }
+    tbody.replaceChildren(...table_rows)
 }
 
 function error(msg) {
     alert(`Phabricator in Bugzilla: ${msg}`)
+}
+
+function mk_revision_search_func(user_id, constraints) {
+    async function revision_search() {
+        const results = await browser.runtime.sendMessage({
+            msg: "revision.search",
+            user_id: user_id,
+            constraints: constraints,
+        });
+        if (results.error_info) {
+            error(results.error_info);
+            return;
+        }
+        return results.result.data;
+    }
+    return revision_search;
 }
 
 async function run() {
@@ -172,34 +197,14 @@ async function run() {
 
     const user_id = new URL(profile.href).searchParams.get("user_id");
 
-    const assigned = await browser.runtime.sendMessage({
-        msg: "revision.search",
-        user_id: user_id,
-        constraints: "constraints[authorPHIDs][0]",
-    });
-
-    if (assigned.error_info) {
-        error(assigned.error_info);
-        return;
-    }
-
-    const assigned_div = mk_table("Phabricator: Your revisions");
-    fill_data(assigned_div, assigned.result.data);
+    const assigned_data_func = mk_revision_search_func(user_id, "constraints[authorPHIDs][0]");
+    const assigned_div = mk_table("Phabricator: Your revisions", assigned_data_func);
+    assigned_div.dispatchEvent(new Event("data_load"));
     document.querySelector("#left").append(assigned_div);
 
-    const reviewing = await browser.runtime.sendMessage({
-        msg: "revision.search",
-        user_id: user_id,
-        constraints: "constraints[reviewerPHIDs][0]",
-    });
-
-    if (reviewing.error_info) {
-        alert("Phabricator in Bugzilla: " + reviewing.error_info);
-        return;
-    }
-
-    const reviewing_div = mk_table("Phabricator: Review Requests");
-    fill_data(reviewing_div, reviewing.result.data);
+    const reviewing_data_func = mk_revision_search_func(user_id, "constraints[reviewerPHIDs][0]");
+    const reviewing_div = mk_table("Phabricator: Review Requests", reviewing_data_func);
+    reviewing_div.dispatchEvent(new Event("data_load"));
     document.querySelector("#right").append(reviewing_div);
 }
 run();
