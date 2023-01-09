@@ -36,42 +36,49 @@ function timeDifference(current, previous) {
     }
 }
 
+function createElement(tag, props={}, text="") {
+    const isSubset = (haystack, needles) =>
+        needles.every((needle) => haystack.includes(needle));
+
+    if (!["a", "div", "h2", "table", "tbody", "thead", "td", "th", "tr"].includes(tag)) {
+        throw new Error(`Element type ${tag} unknown!`);
+    }
+
+    if (!isSubset(["class", "href", "target", "title"], Object.keys(props))) {
+        throw new Error(`Unknown property found in ${props}!`);
+    }
+
+    const el = document.createElement(tag);
+    for (const [property, value] of Object.entries(props)) {
+        el.setAttribute(property, value);
+    }
+
+    if (text) {
+        el.innerText = text;
+    }
+    return el;
+}
+
 function mk_table(table_title) {
-    const div = document.createElement("div");
-    const h2 = document.createElement("h2");
-    h2.classList.add("query_heading")
-    h2.textContent = table_title;
+    const div = createElement("div", {"class": "requests"});
+    const h2 = createElement("h2", {"class": "query_heading"}, table_title);
     div.append(h2);
 
-    const content = document.createElement("div");
-    content.classList.add("yui3-datatable-content");
+    const content = createElement("div", {"class": "yui3-datatable-content"});
     div.append(content);
 
-    const table = document.createElement("table");
-    table.classList.add("yui3-datatable-table");
+    const table = createElement("table", {"class": "yui3-datatable-table"});
     content.append(table);
 
-    const thead = document.createElement("thead");
-    thead.classList.add("yui3-datatable-columns");
+    const thead = createElement("thead", {"class": "yui3-datatable-columns"});
 
     {
-        const tr = document.createElement("tr");
+        const tr = createElement("tr");
 
-        const revision = document.createElement("td");
-        revision.classList.add("yui3-datatable-header");
-        revision.textContent = "Revision";
-
-        const updated = document.createElement("td");
-        updated.classList.add("yui3-datatable-header");
-        updated.textContent = "Updated";
-
-        const status = document.createElement("td");
-        status.classList.add("yui3-datatable-header");
-        status.textContent = "Status";
-
-        const title = document.createElement("td");
-        title.classList.add("yui3-datatable-header");
-        title.textContent = "Title";
+        const revision = createElement("th", {"class": "yui3-datatable-header"}, "Revision");
+        const updated = createElement("th", {"class": "yui3-datatable-header"}, "Updated");
+        const status = createElement("th", {"class": "yui3-datatable-header"}, "Status");
+        const title = createElement("th", {"class": "yui3-datatable-header"}, "Title");
 
         tr.append(revision);
         tr.append(updated);
@@ -83,8 +90,7 @@ function mk_table(table_title) {
 
     table.append(thead);
 
-    const tbody = document.createElement("tbody");
-    tbody.classList.add("yui3-datatable-data");
+    const tbody = createElement("tbody", {"class": "yui3-datatable-data"});
     table.append(tbody);
 
     return div;
@@ -98,29 +104,27 @@ function fill_data(div, data) {
     })
 
     for (let rev of data) {
-        const tr = document.createElement("tr");
-        tr.classList.add("yui3-datatable-even");
+        const tr = createElement("tr", {"class": "yui3-datatable-data"});
 
-        const revision = document.createElement("td");
-        revision.classList.add("yui3-datatable-cell");
-
-        const a = document.createElement("a");
-        a.href = `https://phabricator.services.mozilla.com/D${rev.id}`;
-        a.textContent = `D${rev.id}`;
-        a.target = "_blank";
+        const revision = createElement("td", {class: "yui3-datatable-cell"});
+        const a = createElement(
+            "a",
+            {href: `https://phabricator.services.mozilla.com/D${rev.id}`, target: "_blank"},
+            `D${rev.id}`
+        );
         revision.append(a);
 
-        const updated = document.createElement("td");
-        updated.classList.add("yui3-datatable-cell");
-        updated.textContent = timeDifference(Date.now(), rev.fields.dateModified * 1000);
-        updated.title = new Date(rev.fields.dateModified * 1000).toString();
+        const updated = createElement(
+            "td",
+            {
+                class: "yui3-datatable-cell",
+                title: new Date(rev.fields.dateModified * 1000).toString(),
+            },
+            timeDifference(Date.now(), rev.fields.dateModified * 1000)
+        );
 
-        const status = document.createElement("td");
-        status.classList.add("yui3-datatable-cell");
-        status.textContent = rev.fields.status.name;
-
-        const title = document.createElement("td");
-        title.classList.add("yui3-datatable-cell");
+        const status = createElement("td", {class: "yui3-datatable-cell"}, rev.fields.status.name);
+        const title = createElement("td", {class: "yui3-datatable-cell"});
 
         // Linkify "Bug XXX - "
         const match = /^(?<before>.*)?(?<title>[Bb]ug (?<id>\d+))(?<after>.*)?/.exec(rev.fields.title)
