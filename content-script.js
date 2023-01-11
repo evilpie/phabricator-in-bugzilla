@@ -2,7 +2,6 @@
 // https://stackoverflow.com/questions/6108819/javascript-timestamp-to-relative-time-eg-2-seconds-ago-one-week-ago-etc-best
 // Modified to use const instead of var, jfx2006.
 function timeDifference(current, previous) {
-
     const msPerMinute = 60 * 1000;
     const msPerHour = msPerMinute * 60;
     const msPerDay = msPerHour * 24;
@@ -12,35 +11,24 @@ function timeDifference(current, previous) {
     const elapsed = current - previous;
 
     if (elapsed < msPerMinute) {
-         return Math.round(elapsed/1000) + ' seconds ago';
-    }
-
-    else if (elapsed < msPerHour) {
-         return Math.round(elapsed/msPerMinute) + ' minutes ago';
-    }
-
-    else if (elapsed < msPerDay ) {
-         return Math.round(elapsed/msPerHour ) + ' hours ago';
-    }
-
-    else if (elapsed < msPerMonth) {
-        return Math.round(elapsed/msPerDay) + ' days ago';
-    }
-
-    else if (elapsed < msPerYear) {
-        return Math.round(elapsed/msPerMonth) + ' months ago';
-    }
-
-    else {
-        return Math.round(elapsed/msPerYear ) + ' years ago';
+        return Math.round(elapsed / 1000) + " seconds ago";
+    } else if (elapsed < msPerHour) {
+        return Math.round(elapsed / msPerMinute) + " minutes ago";
+    } else if (elapsed < msPerDay) {
+        return Math.round(elapsed / msPerHour) + " hours ago";
+    } else if (elapsed < msPerMonth) {
+        return Math.round(elapsed / msPerDay) + " days ago";
+    } else if (elapsed < msPerYear) {
+        return Math.round(elapsed / msPerMonth) + " months ago";
+    } else {
+        return Math.round(elapsed / msPerYear) + " years ago";
     }
 }
 
-function createElement(tag, props={}, text="") {
-    const isSubset = (haystack, needles) =>
-        needles.every((needle) => haystack.includes(needle));
+function createElement(tag, props = {}, text = "") {
+    const isSubset = (haystack, needles) => needles.every((needle) => haystack.includes(needle));
 
-    if (!["a", "div", "h2", "table", "tbody", "thead", "td", "th", "tr"].includes(tag)) {
+    if (!["a", "div", "h2", "span", "table", "tbody", "thead", "td", "th", "tr"].includes(tag)) {
         throw new Error(`Element type ${tag} unknown!`);
     }
 
@@ -66,6 +54,15 @@ function mk_table(table_title, data_func) {
 
     const content = createElement("div", {"class": "yui3-datatable-content"});
     div.append(content);
+
+    const span = createElement("span");
+    const a_refresh = createElement(
+        "a",
+        {"class": "refresh", href: "javascript:void(0);"},
+        "Refresh"
+    );
+    span.append(a_refresh);
+    content.append(span);
 
     const table = createElement("table", {"class": "yui3-datatable-table"});
     content.append(table);
@@ -93,12 +90,15 @@ function mk_table(table_title, data_func) {
     const tbody = createElement("tbody", {"class": "yui3-datatable-data"});
     table.append(tbody);
 
-    div.addEventListener("data_load", function(e) {
-        data_func()
-            .then((data) => {
-                fill_data(e.target, data);
-            })
-    })
+    a_refresh.addEventListener("click", function (e) {
+        div.dispatchEvent(new Event("data_load"));
+    });
+
+    div.addEventListener("data_load", function (e) {
+        data_func().then((data) => {
+            fill_data(e.target, data);
+        });
+    });
     return div;
 }
 
@@ -107,13 +107,13 @@ function fill_data(div, data) {
 
     data.sort((a, b) => {
         return b.fields.dateModified - a.fields.dateModified;
-    })
+    });
 
     let table_rows = [];
     for (let rev of data) {
         const tr = createElement("tr", {"class": "yui3-datatable-data"});
 
-        const revision = createElement("td", {class: "yui3-datatable-cell"});
+        const revision = createElement("td", {"class": "yui3-datatable-cell"});
         const a = createElement(
             "a",
             {href: `https://phabricator.services.mozilla.com/D${rev.id}`, target: "_blank"},
@@ -124,17 +124,23 @@ function fill_data(div, data) {
         const updated = createElement(
             "td",
             {
-                class: "yui3-datatable-cell",
+                "class": "yui3-datatable-cell",
                 title: new Date(rev.fields.dateModified * 1000).toString(),
             },
             timeDifference(Date.now(), rev.fields.dateModified * 1000)
         );
 
-        const status = createElement("td", {class: "yui3-datatable-cell"}, rev.fields.status.name);
-        const title = createElement("td", {class: "yui3-datatable-cell"});
+        const status = createElement(
+            "td",
+            {"class": "yui3-datatable-cell"},
+            rev.fields.status.name
+        );
+        const title = createElement("td", {"class": "yui3-datatable-cell"});
 
         // Linkify "Bug XXX - "
-        const match = /^(?<before>.*)?(?<title>[Bb]ug (?<id>\d+))(?<after>.*)?/.exec(rev.fields.title)
+        const match = /^(?<before>.*)?(?<title>[Bb]ug (?<id>\d+))(?<after>.*)?/.exec(
+            rev.fields.title
+        );
         if (match) {
             if (match.groups.before) {
                 title.append(match.groups.before);
@@ -160,11 +166,11 @@ function fill_data(div, data) {
 
         table_rows.push(tr);
     }
-    tbody.replaceChildren(...table_rows)
+    tbody.replaceChildren(...table_rows);
 }
 
 function error(msg) {
-    alert(`Phabricator in Bugzilla: ${msg}`)
+    alert(`Phabricator in Bugzilla: ${msg}`);
 }
 
 function mk_revision_search_func(user_id, constraints) {
@@ -186,7 +192,7 @@ function mk_revision_search_func(user_id, constraints) {
 async function run() {
     const profile = document.querySelector("#header-account a[href^='/user_profile?user_id=']");
     if (!profile) {
-        error(`Could not find "My Profile" link on page`)
+        error(`Could not find "My Profile" link on page`);
         return;
     }
 
