@@ -32,7 +32,7 @@ function createElement(tag, props = {}, text = "") {
         throw new Error(`Element type ${tag} unknown!`);
     }
 
-    if (!isSubset(["class", "href", "target", "title"], Object.keys(props))) {
+    if (!isSubset(["id", "class", "href", "target", "title"], Object.keys(props))) {
         throw new Error(`Unknown property found in ${props}!`);
     }
 
@@ -47,35 +47,39 @@ function createElement(tag, props = {}, text = "") {
     return el;
 }
 
-function mk_table(table_title, data_func) {
-    const div = createElement("div", {"class": "requests"});
-    const h2 = createElement("h2", {"class": "query_heading"}, table_title);
-    div.append(h2);
+function mk_table(table_title, id, data_func) {
+    let div = document.querySelector(`#${id}`);
+    if (!div) {
+        div = createElement("div", {id: id, class: "requests"});
+    }
+    let div_elems = [];
+    const h2 = createElement("h2", {class: "query_heading"}, table_title);
+    div_elems.push(h2);
 
-    const content = createElement("div", {"class": "yui3-datatable-content"});
-    div.append(content);
+    const content = createElement("div", {class: "yui3-datatable-content"});
+    div_elems.push(content);
 
     const span = createElement("span");
     const a_refresh = createElement(
         "a",
-        {"class": "refresh", href: "javascript:void(0);"},
+        {class: "refresh", href: "javascript:void(0);"},
         "Refresh"
     );
     span.append(a_refresh);
     content.append(span);
 
-    const table = createElement("table", {"class": "yui3-datatable-table"});
+    const table = createElement("table", {class: "yui3-datatable-table"});
     content.append(table);
 
-    const thead = createElement("thead", {"class": "yui3-datatable-columns"});
+    const thead = createElement("thead", {class: "yui3-datatable-columns"});
 
     {
         const tr = createElement("tr");
 
-        const revision = createElement("th", {"class": "yui3-datatable-header"}, "Revision");
-        const updated = createElement("th", {"class": "yui3-datatable-header"}, "Updated");
-        const status = createElement("th", {"class": "yui3-datatable-header"}, "Status");
-        const title = createElement("th", {"class": "yui3-datatable-header"}, "Title");
+        const revision = createElement("th", {class: "yui3-datatable-header"}, "Revision");
+        const updated = createElement("th", {class: "yui3-datatable-header"}, "Updated");
+        const status = createElement("th", {class: "yui3-datatable-header"}, "Status");
+        const title = createElement("th", {class: "yui3-datatable-header"}, "Title");
 
         tr.append(revision);
         tr.append(updated);
@@ -87,33 +91,35 @@ function mk_table(table_title, data_func) {
 
     table.append(thead);
 
-    const tbody = createElement("tbody", {"class": "yui3-datatable-data"});
+    const tbody = createElement("tbody", {class: "yui3-datatable-data"});
     table.append(tbody);
 
     a_refresh.addEventListener("click", function (e) {
-        div.dispatchEvent(new Event("data_load"));
+        tbody.dispatchEvent(new Event("data_load"));
     });
 
-    div.addEventListener("data_load", function (e) {
+    tbody.addEventListener("data_load", function (e) {
         data_func().then((data) => {
             fill_data(e.target, data);
         });
     });
+
+    tbody.dispatchEvent(new Event("data_load"));
+
+    div.replaceChildren(...div_elems);
     return div;
 }
 
-function fill_data(div, data) {
-    const tbody = div.querySelector("tbody");
-
+function fill_data(tbody, data) {
     data.sort((a, b) => {
         return b.fields.dateModified - a.fields.dateModified;
     });
 
     let table_rows = [];
     for (let rev of data) {
-        const tr = createElement("tr", {"class": "yui3-datatable-data"});
+        const tr = createElement("tr", {class: "yui3-datatable-data"});
 
-        const revision = createElement("td", {"class": "yui3-datatable-cell"});
+        const revision = createElement("td", {class: "yui3-datatable-cell"});
         const a = createElement(
             "a",
             {href: `https://phabricator.services.mozilla.com/D${rev.id}`, target: "_blank"},
@@ -124,18 +130,14 @@ function fill_data(div, data) {
         const updated = createElement(
             "td",
             {
-                "class": "yui3-datatable-cell",
+                class: "yui3-datatable-cell",
                 title: new Date(rev.fields.dateModified * 1000).toString(),
             },
             timeDifference(Date.now(), rev.fields.dateModified * 1000)
         );
 
-        const status = createElement(
-            "td",
-            {"class": "yui3-datatable-cell"},
-            rev.fields.status.name
-        );
-        const title = createElement("td", {"class": "yui3-datatable-cell"});
+        const status = createElement("td", {class: "yui3-datatable-cell"}, rev.fields.status.name);
+        const title = createElement("td", {class: "yui3-datatable-cell"});
 
         // Linkify "Bug XXX - "
         const match = /^(?<before>.*)?(?<title>[Bb]ug (?<id>\d+))(?<after>.*)?/.exec(
@@ -204,13 +206,19 @@ async function run() {
     const user_id = new URL(profile.href).searchParams.get("user_id");
 
     const assigned_data_func = mk_revision_search_func(user_id, "constraints[authorPHIDs][0]");
-    const assigned_div = mk_table("Phabricator: Your revisions", assigned_data_func);
-    assigned_div.dispatchEvent(new Event("data_load"));
+    const assigned_div = mk_table(
+        "Phabricator: Your revisions",
+        "phab_assigned",
+        assigned_data_func
+    );
     document.querySelector("#left").append(assigned_div);
 
     const reviewing_data_func = mk_revision_search_func(user_id, "constraints[reviewerPHIDs][0]");
-    const reviewing_div = mk_table("Phabricator: Review Requests", reviewing_data_func);
-    reviewing_div.dispatchEvent(new Event("data_load"));
+    const reviewing_div = mk_table(
+        "Phabricator: Review Requests",
+        "phab_reviewing",
+        reviewing_data_func
+    );
     document.querySelector("#right").append(reviewing_div);
 }
 run();
